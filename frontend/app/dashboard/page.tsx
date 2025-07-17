@@ -32,16 +32,83 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<string>(() =>
     typeof window !== "undefined" ? localStorage.getItem("mossy_dashboard_tab") || "selling" : "selling"
   );
-  // Placeholder activity counts
-  const [sellingCount, setSellingCount] = useState(3); // e.g. 3 new
-  const [buyingCount, setBuyingCount] = useState(1); // e.g. 1 new
+  const [sellingListings, setSellingListings] = useState<any[]>([]);
+  const [sellingLoading, setSellingLoading] = useState(false);
+  const [sellingError, setSellingError] = useState('');
   const [unreadNotifications, setUnreadNotifications] = useState(2);
+  // Saved properties state
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [savedProperties, setSavedProperties] = useState<any[]>([]);
+  const [savedLoading, setSavedLoading] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  // Fetch user's saved property IDs and details for Buying tab
+  useEffect(() => {
+    if (user && activeTab === 'buying') {
+      setSavedLoading(true);
+      fetch(`http://localhost:4000/api/saved-properties?user_id=${user.id}`)
+        .then(res => res.json())
+        .then(async (ids) => {
+          console.log('Fetched saved property IDs:', ids);
+          setSavedIds(Array.isArray(ids) ? ids : []);
+          if (Array.isArray(ids) && ids.length > 0) {
+            // Fetch property details for each saved property
+            const res = await fetch(`http://localhost:4000/api/listings`);
+            const allListings = await res.json();
+            const filtered = allListings.filter((l: any) => ids.includes(l.id));
+            console.log('Filtered saved properties:', filtered);
+            setSavedProperties(filtered);
+          } else {
+            setSavedProperties([]);
+          }
+        })
+        .catch(() => {
+          setSavedIds([]);
+          setSavedProperties([]);
+        })
+        .finally(() => setSavedLoading(false));
+    }
+  }, [user, activeTab]);
+
+  // Unsave handler for dashboard
+  const handleToggleSave = async (propertyId: string) => {
+    if (!user) return;
+    setSaving(propertyId);
+    try {
+      await fetch('http://localhost:4000/api/saved-properties', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, property_id: propertyId })
+      });
+      setSavedIds(ids => ids.filter(id => id !== propertyId));
+      setSavedProperties(props => props.filter((p: any) => p.id !== propertyId));
+    } catch (e) {
+      // Optionally show error
+    } finally {
+      setSaving(null);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login");
     }
   }, [user, loading, router]);
+
+  // Fetch user's listings for Selling tab
+  useEffect(() => {
+    if (user && activeTab === 'selling') {
+      setSellingLoading(true);
+      setSellingError('');
+      fetch(`http://localhost:4000/api/listings?seller_id=${user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          setSellingListings(Array.isArray(data) ? data : []);
+        })
+        .catch(err => setSellingError('Failed to load your listings'))
+        .finally(() => setSellingLoading(false));
+    }
+  }, [user, activeTab]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -83,11 +150,8 @@ export default function DashboardPage() {
               }`}
             >
               {tab.label}
-              {tab.key === "selling" && sellingCount > 0 && (
-                <span className="ml-2 bg-green-600 text-white text-xs rounded-full px-2 py-0.5">{sellingCount} new</span>
-              )}
-              {tab.key === "buying" && buyingCount > 0 && (
-                <span className="ml-2 bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">{buyingCount} new</span>
+              {tab.key === "selling" && sellingListings.length > 0 && (
+                <span className="ml-2 bg-green-600 text-white text-xs rounded-full px-2 py-0.5">{sellingListings.length} listed</span>
               )}
             </button>
           ))}
@@ -96,79 +160,57 @@ export default function DashboardPage() {
           {activeTab === "selling" && (
             <div>
               <h2 className="text-xl font-semibold mb-4">My Listings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Example property cards using PropertyCard */}
-                <div className="relative">
-                  <PropertyCard
-                    id="1"
-                    title="Modern 3 Bedroom House"
-                    price={650000}
-                    bedrooms={3}
-                    bathrooms={2}
-                    location="Richmond, London"
-                    imageUrl="/placeholder-property.jpg"
-                  />
-                  {/* Quick stats overlay */}
-                  <div className="absolute top-2 right-2 bg-white bg-opacity-80 rounded px-2 py-1 flex gap-2 text-xs shadow">
-                    <span>👁️ 12</span>
-                    <span>💾 3</span>
-                    <span>⭐ 2</span>
-                  </div>
-                  {/* Status badge */}
-                  <span className="absolute top-2 left-2 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded">Active</span>
-                  {/* Expandable section placeholder */}
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-sm text-gray-600">View Details</summary>
-                    <div className="mt-2 text-xs text-gray-700">
-                      <div className="mb-2">
-                        <span className="font-semibold">Viewing Requests (2):</span>
-                        <ul className="list-disc ml-5">
-                          <li>Jane Doe - 20/07/2025 14:00 <button className="ml-2 text-green-600">Accept</button> <button className="ml-1 text-red-600">Reject</button></li>
-                          <li>John Smith - 21/07/2025 10:30 <button className="ml-2 text-green-600">Accept</button> <button className="ml-1 text-red-600">Reject</button></li>
-                        </ul>
-                      </div>
-                      <div className="mb-2">
-                        <span className="font-semibold">Enquiries (1):</span>
-                        <ul className="list-disc ml-5">
-                          <li>"Is the garden south-facing?" <button className="ml-2 text-green-600">Reply</button></li>
-                        </ul>
-                      </div>
-                      <div>
-                        <span className="font-semibold">Offers (1):</span>
-                        <ul className="list-disc ml-5">
-                          <li>£640,000 from Jane Doe <button className="ml-2 text-green-600">Accept</button> <button className="ml-1 text-yellow-600">Counter</button> <button className="ml-1 text-red-600">Reject</button></li>
-                        </ul>
-                      </div>
-                    </div>
-                  </details>
-                  <div className="flex gap-2 mt-2">
-                    <button className="text-green-600 hover:underline text-sm">Edit Listing</button>
-                    <button className="text-gray-500 hover:underline text-sm">Mark as Sold</button>
-                  </div>
+              {sellingLoading ? (
+                <div className="text-gray-500">Loading your listings...</div>
+              ) : sellingError ? (
+                <div className="text-red-600">{sellingError}</div>
+              ) : sellingListings.length === 0 ? (
+                <div className="text-gray-500">You have no listings yet.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {sellingListings.map((listing) => (
+                    <PropertyCard
+                      key={listing.id}
+                      id={listing.id}
+                      title={listing.title}
+                      price={listing.price}
+                      bedrooms={listing.bedrooms}
+                      bathrooms={listing.bathrooms}
+                      location={`${listing.address}, ${listing.city}, ${listing.postcode}`}
+                      imageUrl={listing.images && listing.images.length > 0 ? listing.images[0] : '/placeholder-property.jpg'}
+                    />
+                  ))}
                 </div>
-                {/* Add more property cards here as needed */}
-              </div>
+              )}
             </div>
           )}
           {activeTab === "buying" && (
             <div>
               <h2 className="text-xl font-semibold mb-4">Saved Properties</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {/* Example saved property card using PropertyCard */}
-                <div className="relative">
-                  <PropertyCard
-                    id="2"
-                    title="Cosy Flat in Soho"
-                    price={450000}
-                    bedrooms={1}
-                    bathrooms={1}
-                    location="Soho, London"
-                    imageUrl="/placeholder-property.jpg"
-                  />
-                  <button className="absolute top-2 right-2 text-red-500 bg-white bg-opacity-80 rounded px-2 py-0.5 text-xs">Unsave</button>
+              {savedLoading ? (
+                <div className="text-gray-500">Loading saved properties...</div>
+              ) : savedProperties.length === 0 ? (
+                <div className="text-gray-500">You have no saved properties yet.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {savedProperties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      id={property.id}
+                      title={property.title}
+                      price={property.price}
+                      bedrooms={property.bedrooms}
+                      bathrooms={property.bathrooms}
+                      location={`${property.address}, ${property.city}, ${property.postcode}`}
+                      imageUrl={property.images && property.images.length > 0 ? property.images[0] : '/placeholder-property.jpg'}
+                      isSaved={true}
+                      onToggleSave={() => handleToggleSave(property.id)}
+                      saving={saving === property.id}
+                    />
+                  ))}
                 </div>
-                {/* Add more saved property cards here */}
-              </div>
+              )}
+              {/* ...existing activity UI... */}
               <h3 className="text-lg font-semibold mb-2">My Activity</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg shadow p-4">

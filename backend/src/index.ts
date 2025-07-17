@@ -1,10 +1,10 @@
+
+import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import propertyRoutes from './routes/properties';
-
-dotenv.config();
+import listingsRoutes from './routes/listings';
+import savedPropertiesRoutes from './routes/savedProperties';
 
 const app = express();
 app.use(cors());
@@ -14,7 +14,9 @@ app.get('/', (req, res) => {
   res.send('Mossy backend API is running!');
 });
 
-app.use('/api/properties', propertyRoutes);
+
+app.use('/api/listings', listingsRoutes);
+app.use('/api/saved-properties', savedPropertiesRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
