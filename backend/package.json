@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed:listings": "ts-node scripts/seedListings.ts",
+    "seed:listings": "npm run flush:listings && ts-node scripts/seedListings.ts",
     "flush:listings": "ts-node scripts/flushListings.ts"
   },
   "keywords": [],
@@ -21,8 +21,10 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "lucide-react": "^0.525.0",
+    "node-fetch": "^2.7.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19"

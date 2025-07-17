@@ -1,3 +1,33 @@
+# Listings Data Management Scripts
+
+## Flush Listings
+
+Deletes all rows from the `listings` table in Supabase.
+
+**Command:**
+
+```
+npm run flush:listings
+```
+
+---
+
+
+## Seed Listings
+
+Flushes all listings, then uploads Unsplash images to Supabase Storage, updates listing image URLs, and seeds the listings table with demo data.
+
+**Command:**
+
+```
+npm run seed:listings
+```
+
+This will first delete all existing listings, then reseed with fresh data and Supabase-hosted images.
+
+---
+
+**Note:** Ensure your `.env` contains valid `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (for flush) and `SUPABASE_SERVICE_KEY` (for seeding/uploading) before running these scripts.
 # Mossy Backend API
 
 This is the backend for the Mossy property marketplace, built with Node.js, Express, TypeScript, and Prisma ORM (PostgreSQL).
