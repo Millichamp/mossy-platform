@@ -1,0 +1,48 @@
+// Prisma schema for Mossy property marketplace
+// Update the DATABASE_URL in .env with your actual credentials
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  properties Property[]
+}
+
+model Property {
+  id            String   @id @default(uuid())
+  title         String
+  price         Int
+  address       String
+  city          String
+  postcode      String
+  bedrooms      Int
+  bathrooms     Int
+  propertyType  String
+  description   String
+  images        String[]
+  features      String[]
+  epcRating     String
+  councilTaxBand String
+  tenure        String
+  chainFree     Boolean
+  parking       Int
+  garden        Boolean
+  status        String
+  listedDate    DateTime
+  seller        User     @relation(fields: [sellerId], references: [id])
+  sellerId      String
+  coordinatesLat Float
+  coordinatesLng Float
+}
