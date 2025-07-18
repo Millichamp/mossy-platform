@@ -2,15 +2,14 @@
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import NotificationCenter from './NotificationCenter';
 
 export default function Navbar() {
-
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
 
   const handleLogin = () => router.push('/login');
   const handleRegister = () => router.push('/register');
-  const handleDashboard = () => router.push('/dashboard');
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
@@ -36,36 +35,28 @@ export default function Navbar() {
             <Link href="/services" className="text-gray-700 hover:text-green-600 transition">
               Services
             </Link>
-            {user && user.role === 'service_provider' && (
-              <Link href="/dashboard" className="text-gray-700 hover:text-green-600 transition">
-                Provider Dashboard
-              </Link>
-            )}
-            {user && user.role === 'seller' && (
-              <Link href="/dashboard" className="text-gray-700 hover:text-green-600 transition">
-                Seller Dashboard
-              </Link>
-            )}
-            {user && user.role === 'buyer' && (
-              <Link href="/dashboard" className="text-gray-700 hover:text-green-600 transition">
-                Buyer Dashboard
-              </Link>
-            )}
+            <Link href="/messages" className="text-gray-700 hover:text-green-600 transition">
+              Messages
+            </Link>
           </div>
 
           {/* Auth Buttons/User Info */}
           <div className="flex space-x-4 items-center">
             {loading ? null : user ? (
               <>
-                <span className="text-gray-700 text-sm font-medium">
-                  {user.name || user.email} <span className="ml-1 text-xs text-gray-400">({user.role})</span>
-                </span>
-                <button
-                  onClick={handleDashboard}
-                  className="text-green-600 hover:text-green-700 transition"
+                <NotificationCenter />
+                
+                {/* Account Icon */}
+                <Link 
+                  href="/dashboard"
+                  className="text-gray-700 hover:text-green-600 transition p-2 rounded-full hover:bg-gray-100"
+                  title="Account Dashboard"
                 >
-                  Dashboard
-                </button>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </Link>
+                
                 <button
                   onClick={handleSignOut}
                   className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
@@ -83,7 +74,7 @@ export default function Navbar() {
                 </button>
                 <button
                   onClick={handleRegister}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Register
                 </button>

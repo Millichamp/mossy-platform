@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import listingsRoutes from './routes/listings';
 import savedPropertiesRoutes from './routes/savedProperties';
+import conversationsRoutes from './routes/conversations';
 
 const app = express();
 app.use(cors());
@@ -17,6 +18,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/listings', listingsRoutes);
 app.use('/api/saved-properties', savedPropertiesRoutes);
+app.use('/api/conversations', conversationsRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

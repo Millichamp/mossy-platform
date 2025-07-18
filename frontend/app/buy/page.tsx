@@ -87,13 +87,13 @@ export default function BuyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-8">
           Properties for Sale
         </h1>
         {/* Search filters will go here later */}
-        <div className="mb-8 p-4 bg-white rounded-lg shadow">
+        <div className="mb-8 p-4 bg-gradient-to-r from-white to-gray-50 rounded-lg shadow-sm border border-gray-200">
           <p className="text-gray-600">Search filters coming soon...</p>
         </div>
         {/* Property Grid */}

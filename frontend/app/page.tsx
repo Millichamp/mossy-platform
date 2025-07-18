@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="bg-gray-50 text-gray-900">
+    <main className="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900">
       {/* Hero Section with overlayed Search Bar */}
       <section className="relative h-screen flex flex-col justify-center items-center overflow-hidden">
         <Image
@@ -16,7 +16,7 @@ export default function HomePage() {
           placeholder="blur"
           blurDataURL="/placeholder-property.jpg"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/70 to-emerald-600/60 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-green-900/70 via-emerald-800/60 to-green-600/50 z-10" />
         <div className="relative z-20 flex flex-col items-center text-center px-4 w-full">
           <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 drop-shadow-lg">
             Buy and Sell Homes Without Estate Agents
@@ -26,12 +26,12 @@ export default function HomePage() {
           </p>
           <div className="flex gap-4 mb-12">
             <Link href="/sell">
-              <button className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition">
+              <button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105">
                 Start Selling
               </button>
             </Link>
             <Link href="/buy">
-              <button className="border-2 border-white text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-white hover:text-emerald-600 transition">
+              <button className="border-2 border-white text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-gradient-to-r hover:from-white hover:to-gray-100 hover:text-green-600 transition-all duration-200 transform hover:scale-105">
                 Browse Properties
               </button>
             </Link>
@@ -43,11 +43,11 @@ export default function HomePage() {
             </svg>
           </div>
         </div>
-    
+      </section>
 
       {/* Trust Indicators Bar */}
       <section className="max-w-5xl mx-auto mt-16 mb-8 px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-white rounded-xl shadow p-3 text-center text-base font-semibold justify-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-gradient-to-r from-white to-gray-50 rounded-xl shadow-sm border border-gray-200 p-3 text-center text-base font-semibold justify-center">
           <div className="flex flex-col items-center">
             <span className="mb-1 text-center">
               <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#10b981"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10l4.5 4.5L21 5" /></svg>
@@ -76,7 +76,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Properties Carousel */}
-      <section className="bg-emerald-50 py-16">
+      <section className="bg-gradient-to-br from-green-50 to-emerald-50 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold mb-8">Recently Listed Properties</h2>
           <div className="flex gap-6 overflow-x-auto pb-4">
@@ -115,10 +115,10 @@ export default function HomePage() {
                 listed: "2 days ago"
               }
             ].map((p, i) => (
-              <div key={i} className="min-w-[320px] bg-white rounded-xl shadow-lg hover:scale-105 hover:shadow-2xl transition-transform duration-200 overflow-hidden">
+              <div key={i} className="min-w-[320px] bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg hover:scale-105 hover:shadow-2xl hover:from-white hover:to-gray-100 transition-all duration-300 overflow-hidden border border-gray-200">
                 <Image src={p.img} alt={p.location} width={320} height={200} className="object-cover w-full h-48" />
                 <div className="p-4">
-                  <div className="text-emerald-600 font-bold text-lg mb-1">{p.price}</div>
+                  <div className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent font-bold text-lg mb-1">{p.price}</div>
                   <div className="text-gray-700 mb-1">{p.location}</div>
                   <div className="text-gray-500 text-sm mb-2">{p.beds} beds • {p.baths} baths</div>
                   <div className="text-xs text-gray-400">Listed {p.listed}</div>

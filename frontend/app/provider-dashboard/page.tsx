@@ -3,6 +3,8 @@
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Breadcrumb from "../../components/Breadcrumb";
+import { Home, Settings } from "lucide-react";
 
 export default function ProviderDashboardPage() {
   const { user, loading } = useAuth();
@@ -25,6 +27,13 @@ export default function ProviderDashboardPage() {
   return (
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
+        <Breadcrumb 
+          items={[
+            { label: 'Dashboard', href: '/dashboard', icon: <Home className="w-4 h-4" /> },
+            { label: 'Provider Dashboard', icon: <Settings className="w-4 h-4" /> }
+          ]} 
+        />
+        
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Service Provider Account</h1>
         <div className="bg-white rounded-lg shadow-md p-6">
           <p className="mb-2"><span className="font-semibold">Business Name:</span> {user.name || user.email}</p>

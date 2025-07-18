@@ -34,18 +34,21 @@ export default function PropertyCard({
       : '/placeholder-property.jpg';
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative">
-      <Link href={`/property/${id}`} className="block group" tabIndex={-1} prefetch={false}>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 relative group">
+      <Link href={`/property/${id}`} className="block" tabIndex={-1} prefetch={false}>
         <div className="relative h-48 w-full">
           <Image
             src={validImageUrl}
             alt={title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          {/* Enhanced gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
           {onToggleSave && (
             <button
-              className={`absolute top-2 right-2 z-10 p-2 rounded-full bg-white bg-opacity-80 hover:bg-opacity-100 transition-colors ${saving ? 'opacity-50 cursor-wait' : ''}`}
+              className={`absolute top-2 right-2 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-all duration-200 ${saving ? 'opacity-50 cursor-wait' : ''}`}
               onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleSave(); }}
               disabled={saving}
               aria-label={isSaved ? 'Unsave property' : 'Save property'}
@@ -64,10 +67,10 @@ export default function PropertyCard({
           )}
         </div>
         <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-2xl font-bold text-green-600 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors">{title}</h3>
+          <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
             £{price.toLocaleString()}
-          </p>
+          </div>
           <div className="flex items-center text-gray-600 text-sm mb-2">
             <span className="mr-4">{bedrooms} bed</span>
             <span>{bathrooms} bath</span>

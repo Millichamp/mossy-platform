@@ -258,6 +258,15 @@ router.put('/:id', async (req, res) => {
     if (updateData.groundRent) processedData.ground_rent = parseFloat(updateData.groundRent);
     if (updateData.serviceCharge) processedData.service_charge = parseFloat(updateData.serviceCharge);
     
+    // Handle additional fields for editing
+    if (updateData.yearBuilt) processedData.year_built = parseInt(updateData.yearBuilt);
+    if (updateData.parkingSpaces) processedData.parking_spaces = parseInt(updateData.parkingSpaces);
+    if (updateData.garden !== undefined) processedData.garden = updateData.garden === 'Yes' || updateData.garden === true;
+    if (updateData.furnished) processedData.furnished = updateData.furnished;
+    if (updateData.contactName) processedData.contact_name = updateData.contactName;
+    if (updateData.contactPhone) processedData.contact_phone = updateData.contactPhone;
+    if (updateData.contactEmail) processedData.contact_email = updateData.contactEmail;
+    
     // Update the listing
     const { data, error } = await supabase
       .from('listings')

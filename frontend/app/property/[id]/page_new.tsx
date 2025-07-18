@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -40,7 +39,6 @@ interface PropertyListing {
   reason_for_sale?: string;
   completion_timeline?: string;
   images?: Array<{url: string; caption?: string; is_floor_plan?: boolean}>;
-  floor_plan?: string;
   floor_plan_url?: string;
   virtual_tour_url?: string;
   seller_id: string;
@@ -78,20 +76,13 @@ export default function PropertyPage() {
       const body: any = { seller_id: user.id };
       body[field] = value;
       
-      console.log('Saving field:', field, 'with value:', value);
-      console.log('Request body:', body);
-      
       const res = await fetch(`http://localhost:4000/api/listings/${property.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
       
-      if (!res.ok) {
-        const errorData = await res.text();
-        console.error('API Error Response:', errorData);
-        throw new Error(`Failed to update: ${res.status} ${res.statusText}. ${errorData}`);
-      }
+      if (!res.ok) throw new Error('Failed to update');
       
       const result = await res.json();
       setProperty(prev => prev ? { ...prev, [field]: value } : prev);
@@ -117,31 +108,7 @@ export default function PropertyPage() {
         const res = await fetch(`http://localhost:4000/api/listings/${id}`);
         if (!res.ok) throw new Error('Property not found');
         const data = await res.json();
-        
-        // Helper function to safely parse JSON
-        const safeJsonParse = (jsonString: any, fallback: any = null) => {
-          if (typeof jsonString !== 'string') return jsonString;
-          try {
-            return JSON.parse(jsonString);
-          } catch (e) {
-            console.warn('Failed to parse JSON:', jsonString, e);
-            return fallback;
-          }
-        };
-
-        // Parse JSON fields that might be stored as strings
-        const processedData = {
-          ...data,
-          images: safeJsonParse(data.images, []),
-          address: safeJsonParse(data.address, { displayAddress: 'Address not available' }),
-          key_features: safeJsonParse(data.key_features, []),
-          price_history: safeJsonParse(data.price_history, []),
-          coordinates: safeJsonParse(data.coordinates, null),
-          nearby_schools: safeJsonParse(data.nearby_schools, []),
-          transport_links: safeJsonParse(data.transport_links, []),
-        };
-        
-        setProperty(processedData);
+        setProperty(data);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -174,9 +141,7 @@ export default function PropertyPage() {
   }
 
   // Process images for hero component
-  const imageUrls = Array.isArray(property.images) 
-    ? property.images.map(img => img.url) 
-    : [];
+  const imageUrls = property.images?.map(img => img.url) || [];
 
   return (
     <PropertyLayout property={property} isOwner={isOwner}>
@@ -203,9 +168,8 @@ export default function PropertyPage() {
       <PropertyHero
         title={property.title}
         price={property.price}
-        location={property.address?.displayAddress || 'Location not available'}
+        location={property.address.displayAddress}
         imageUrls={imageUrls}
-        floorPlanUrl={property.floor_plan}
         canEdit={isOwner}
         onSave={handleSave}
       />

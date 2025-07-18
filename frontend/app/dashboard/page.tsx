@@ -5,26 +5,12 @@ import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import PropertyCard from "../../components/PropertyCard";
+import SavedPropertyCard from "../../components/SavedPropertyCard";
 
 const TABS = [
   { key: "selling", label: "Selling" },
   { key: "buying", label: "Buying" },
 ];
-
-function NotificationBell({ unread }: { unread: number }) {
-  return (
-    <div className="relative cursor-pointer ml-4">
-      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-      </svg>
-      {unread > 0 && (
-        <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
-          {unread}
-        </span>
-      )}
-    </div>
-  );
-}
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -35,12 +21,14 @@ export default function DashboardPage() {
   const [sellingListings, setSellingListings] = useState<any[]>([]);
   const [sellingLoading, setSellingLoading] = useState(false);
   const [sellingError, setSellingError] = useState('');
-  const [unreadNotifications, setUnreadNotifications] = useState(2);
   // Saved properties state
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [savedProperties, setSavedProperties] = useState<any[]>([]);
   const [savedLoading, setSavedLoading] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [activeProperties, setActiveProperties] = useState<any[]>([]);
+  const [activeLoading, setActiveLoading] = useState(false);
 
   // Fetch user's saved property IDs and details for Buying tab
   useEffect(() => {
@@ -69,6 +57,90 @@ export default function DashboardPage() {
         .finally(() => setSavedLoading(false));
     }
   }, [user, activeTab]);
+
+  // Fetch conversations and active properties for Buying tab
+  useEffect(() => {
+    if (user && activeTab === 'buying') {
+      fetchConversationsAndActiveProperties();
+    }
+  }, [user, activeTab]);
+
+  // Refresh data when component gains focus (user returns from conversation)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && activeTab === 'buying') {
+        console.log('Window focused, refreshing conversation data...');
+        fetchConversationsAndActiveProperties();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, activeTab]);
+
+  const fetchConversationsAndActiveProperties = async () => {
+    if (!user) return;
+    
+    setActiveLoading(true);
+    try {
+      console.log('Fetching conversations for user:', user.id);
+      const response = await fetch(`http://localhost:4000/api/conversations?role=buyer`, {
+        headers: {
+          'Authorization': `Bearer ${user.id}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const conversationsData = await response.json();
+        console.log('Conversations data:', conversationsData);
+        setConversations(conversationsData);
+        
+        // Fetch active properties based on conversations
+        if (conversationsData?.length > 0) {
+          const propertyIds = conversationsData
+            .map((conv: any) => conv.property_id || conv.property?.id)
+            .filter(Boolean);
+          
+          console.log('Property IDs from conversations:', propertyIds);
+          
+          if (propertyIds.length > 0) {
+            const propertiesResponse = await fetch('http://localhost:4000/api/listings');
+            const allProperties = await propertiesResponse.json();
+            const engagedProperties = allProperties.filter((prop: any) => 
+              propertyIds.includes(prop.id)
+            );
+            
+            console.log('Active properties found:', engagedProperties.length);
+            setActiveProperties(engagedProperties);
+          }
+        }
+      } else {
+        console.error('Failed to fetch conversations:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+    } finally {
+      setActiveLoading(false);
+    }
+  };
+
+  // Helper functions for conversation data
+  const getPropertyConversation = (propertyId: string) => {
+    return conversations.find(conv => 
+      conv.property_id === propertyId || conv.property?.id === propertyId
+    );
+  };
+
+  const hasUnreadMessages = (propertyId: string) => {
+    const conversation = getPropertyConversation(propertyId);
+    return conversation?.buyer_unread_count > 0;
+  };
+
+  const getUnreadCount = (propertyId: string) => {
+    const conversation = getPropertyConversation(propertyId);
+    return conversation?.buyer_unread_count || 0;
+  };
 
   // Unsave handler for dashboard
   const handleToggleSave = async (propertyId: string) => {
@@ -129,13 +201,36 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Account Dashboard</h1>
-          <NotificationBell unread={unreadNotifications} />
         </div>
+        
+        {/* Messages CTA Card */}
+        <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 mr-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-7.93-6.84c-.042-.311-.058-.633-.058-.96 0-.408.015-.792.058-1.16A8.013 8.013 0 0113 4c4.418 0 8 3.582 8 8z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Property Messages</h3>
+                <p className="text-green-100">Stay connected with buyers and sellers</p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/messages')}
+              className="bg-white/90 backdrop-blur-sm text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-white transition-all duration-200 shadow-md hover:shadow-lg"
+            >
+              View Messages
+            </button>
+          </div>
+        </div>
+        
         <div className="mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center">
           <input
             type="text"
             placeholder="Search your activity..."
-            className="w-full sm:w-96 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full sm:w-96 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
           />
         </div>
         <div className="flex border-b border-gray-200 mb-6">
@@ -176,8 +271,8 @@ export default function DashboardPage() {
                       price={listing.price}
                       bedrooms={listing.bedrooms}
                       bathrooms={listing.bathrooms}
-                      location={`${listing.address}, ${listing.city}, ${listing.postcode}`}
-                      imageUrl={listing.images && listing.images.length > 0 ? listing.images[0] : '/placeholder-property.jpg'}
+                      location={typeof listing.address === 'string' ? JSON.parse(listing.address).displayAddress || JSON.parse(listing.address).line1 : `${listing.address}, ${listing.city}, ${listing.postcode}`}
+                      imageUrl={listing.images && listing.images.length > 0 && listing.images[0].url ? listing.images[0].url : '/placeholder-property.jpg'}
                     />
                   ))}
                 </div>
@@ -186,6 +281,66 @@ export default function DashboardPage() {
           )}
           {activeTab === "buying" && (
             <div>
+              {/* Active Properties Section */}
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-2">Active Properties</h2>
+                <p className="text-gray-600 text-sm mb-4">Properties you have messaged, viewed, or enquired about</p>
+                
+                {activeLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                    <span className="ml-3 text-gray-600">Loading active properties...</span>
+                  </div>
+                ) : activeProperties.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-7.93-6.84c-.042-.311-.058-.633-.058-.96 0-.408.015-.792.058-1.16A8.013 8.013 0 0113 4c4.418 0 8 3.582 8 8z" />
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No active properties yet</h3>
+                    <p className="text-gray-600 mb-4">Start messaging sellers about properties you're interested in.</p>
+                    <button 
+                      onClick={() => window.location.href = '/buy'}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
+                    >
+                      Browse Properties
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {activeProperties.map((property) => {
+                      const conversation = getPropertyConversation(property.id);
+                      const isSaved = savedIds.includes(property.id);
+                      return (
+                        <SavedPropertyCard
+                          key={property.id}
+                          id={property.id}
+                          title={property.title}
+                          price={property.price}
+                          bedrooms={property.bedrooms}
+                          bathrooms={property.bathrooms}
+                          location={property.address?.displayAddress || 'Location not available'}
+                          imageUrl={property.images?.[0]?.url || '/placeholder-property.jpg'}
+                          isSaved={isSaved}
+                          onToggleSave={() => handleToggleSave(property.id)}
+                          saving={saving === property.id}
+                          hasUnreadMessages={hasUnreadMessages(property.id)}
+                          unreadCount={getUnreadCount(property.id)}
+                          conversationId={conversation?.id}
+                          onMessageClick={() => {
+                            if (conversation) {
+                              window.location.href = `/conversation/${conversation.id}`;
+                            } else {
+                              window.location.href = `/property/${property.id}?openChat=true`;
+                            }
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Saved Properties Section */}
               <h2 className="text-xl font-semibold mb-4">Saved Properties</h2>
               {savedLoading ? (
                 <div className="text-gray-500">Loading saved properties...</div>
@@ -201,8 +356,8 @@ export default function DashboardPage() {
                       price={property.price}
                       bedrooms={property.bedrooms}
                       bathrooms={property.bathrooms}
-                      location={`${property.address}, ${property.city}, ${property.postcode}`}
-                      imageUrl={property.images && property.images.length > 0 ? property.images[0] : '/placeholder-property.jpg'}
+                      location={typeof property.address === 'string' ? JSON.parse(property.address).displayAddress || JSON.parse(property.address).line1 : `${property.address}, ${property.city}, ${property.postcode}`}
+                      imageUrl={property.images && property.images.length > 0 && property.images[0].url ? property.images[0].url : '/placeholder-property.jpg'}
                       isSaved={true}
                       onToggleSave={() => handleToggleSave(property.id)}
                       saving={saving === property.id}
