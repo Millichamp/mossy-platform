@@ -165,7 +165,14 @@ const ConversationsList: React.FC<ConversationsListProps> = ({ role = 'buyer', p
                   </p>
                   
                   {conversation.property?.address && (
-                    <p className="text-xs text-gray-500 mb-2">{conversation.property.address}</p>
+                    <p className="text-xs text-gray-500 mb-2">
+                      {typeof conversation.property.address === 'string' 
+                        ? conversation.property.address 
+                        : (conversation.property.address as any)?.displayAddress || 
+                          (conversation.property.address as any)?.line1 || 
+                          'Address not available'
+                      }
+                    </p>
                   )}
                   
                   <p className="text-sm text-gray-800 line-clamp-2">

@@ -6,6 +6,7 @@ import { messagingService, Conversation, Message } from '../../../lib/messagingS
 import { useAuth } from '../../../context/AuthContext';
 import ProtectedRoute from '../../../components/ProtectedRoute';
 import Breadcrumb from '../../../components/Breadcrumb';
+import ActionsSidebar from '../../../components/messaging/ActionsSidebar';
 import { Home, MessageCircle, ArrowLeft } from 'lucide-react';
 
 export default function ConversationPage() {
@@ -23,6 +24,19 @@ export default function ConversationPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const conversationId = params.id as string;
+
+  // Action handlers for viewing requests and offers
+  const handleViewingAction = (action: any) => {
+    console.log('Viewing action:', action);
+    // This will be replaced with real API calls in Phase 2
+    // For now, just log the action to show the UI is working
+  };
+
+  const handleOfferAction = (action: any) => {
+    console.log('Offer action:', action);
+    // This will be replaced with real API calls in Phase 2
+    // For now, just log the action to show the UI is working
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -243,15 +257,27 @@ export default function ConversationPage() {
           </div>
         </div>
 
-        {/* Conversation Area */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 px-4 py-6">
-          <div className="max-w-3xl mx-auto">
-            {messages.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500">Start your conversation</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
+        {/* Main Content Area with Sidebar */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Actions Sidebar */}
+          <ActionsSidebar
+            conversation={conversation}
+            userRole={userRole}
+            onViewingAction={handleViewingAction}
+            onOfferAction={handleOfferAction}
+          />
+
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col">
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto bg-gray-50 px-4 py-6">
+              <div className="max-w-3xl mx-auto">
+                {messages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">Start your conversation</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
                 {messages.map((message, index) => {
                   const isFromMe = message.sender_id === user.id;
                   const showTimestamp = index === 0 || 
@@ -337,6 +363,8 @@ export default function ConversationPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>
