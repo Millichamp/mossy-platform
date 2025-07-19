@@ -19,7 +19,30 @@ interface Conversation {
     images: string[];
     price: number;
     address: string;
+    bedrooms?: number;
+    bathrooms?: number;
+    property_type?: string;
+    receptions?: number;
+    parking_spaces?: number;
   };
+  latest_viewing_request?: {
+    id: string;
+    status: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'completed' | 'superseded';
+    preferred_date?: string;
+    preferred_time?: string;
+    message?: string;
+    created_at: string;
+    updated_at: string;
+  };
+  viewing_requests?: {
+    id: string;
+    status: 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'completed' | 'superseded';
+    preferred_date?: string;
+    preferred_time?: string;
+    message?: string;
+    created_at: string;
+    updated_at: string;
+  }[];
   buyer?: {
     id: string;
     email: string;

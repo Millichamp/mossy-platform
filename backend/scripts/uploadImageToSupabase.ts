@@ -7,7 +7,7 @@ const { v4: uuidv4 } = require('uuid');
  * Downloads an image from a URL and uploads it to Supabase Storage.
  * Returns the public URL of the uploaded image.
  */
-export async function uploadImageToSupabase(imageUrl: string, bucket: string = 'images'): Promise<string> {
+export async function uploadImageToSupabase(imageUrl: string, bucket: string = 'Images'): Promise<string> {
   // Download the image as a buffer
   const response = await fetch(imageUrl);
   if (!response.ok) throw new Error(`Failed to fetch image: ${imageUrl}`);

@@ -113,7 +113,8 @@ router.get('/', requireAuth, async (req: any, res) => {
       .from('conversations')
       .select(`
         *,
-        property:listings(id, title, images, price, address)
+        property:listings(id, title, images, price, address, bedrooms, bathrooms, property_type, receptions, parking_spaces),
+        viewing_requests(id, status, preferred_date, preferred_time, message, created_at, updated_at)
       `)
       .eq('status', status)
       .order('last_message_at', { ascending: false });
@@ -143,7 +144,13 @@ router.get('/', requireAuth, async (req: any, res) => {
     const { data, error } = await query;
 
     if (error) {
+      console.error('Database error:', error);
       return res.status(500).json({ error: error.message });
+    }
+
+    // Debug: Log the first conversation to see the data structure
+    if (data && data.length > 0) {
+      console.log('Sample conversation data:', JSON.stringify(data[0], null, 2));
     }
 
     res.json(data);
@@ -325,7 +332,8 @@ router.get('/all', requireAuth, async (req: any, res) => {
       .from('conversations')
       .select(`
         *,
-        property:listings(id, title, images, price, address)
+        property:listings(id, title, images, price, address, bedrooms, bathrooms, property_type, receptions, parking_spaces),
+        viewing_requests(id, status, preferred_date, preferred_time, message, created_at, updated_at)
       `)
       .eq('buyer_id', userId)
       .eq('status', status)
@@ -340,7 +348,8 @@ router.get('/all', requireAuth, async (req: any, res) => {
       .from('conversations')
       .select(`
         *,
-        property:listings(id, title, images, price, address)
+        property:listings(id, title, images, price, address, bedrooms, bathrooms, property_type, receptions, parking_spaces),
+        viewing_requests(id, status, preferred_date, preferred_time, message, created_at, updated_at)
       `)
       .eq('seller_id', userId)
       .eq('status', status)

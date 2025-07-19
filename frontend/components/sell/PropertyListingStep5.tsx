@@ -39,7 +39,7 @@ export const PropertyListingStep5: React.FC<PropertyListingStep5Props> = ({ data
       console.log('Uploading file:', fileName, 'Size:', file.size);
       
       const { data, error } = await supabase.storage
-        .from('images')
+        .from('Images')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
@@ -53,7 +53,7 @@ export const PropertyListingStep5: React.FC<PropertyListingStep5Props> = ({ data
       console.log('Upload successful:', data);
       
       const { data: publicURL } = supabase.storage
-        .from('images')
+        .from('Images')
         .getPublicUrl(fileName);
       
       if (!publicURL.publicUrl) {
