@@ -142,6 +142,37 @@ export default function DashboardPage() {
     return conversation?.buyer_unread_count || 0;
   };
 
+  // Get latest viewing request for a property
+  const getLatestViewingRequest = (propertyId: string) => {
+    console.log(`🔍 Dashboard getLatestViewingRequest called for property ${propertyId}`);
+    const conversation = getPropertyConversation(propertyId);
+    console.log(`🔍 Dashboard getLatestViewingRequest for property ${propertyId}:`, {
+      conversation: conversation,
+      viewing_requests: conversation?.viewing_requests,
+      viewing_requests_length: conversation?.viewing_requests?.length || 0
+    });
+    
+    if (!conversation?.viewing_requests || conversation.viewing_requests.length === 0) {
+      console.log(`❌ Dashboard: No viewing requests found for property ${propertyId}`);
+      return null;
+    }
+    
+    // Sort by created_at to get the latest viewing request
+    const sortedRequests = conversation.viewing_requests.sort(
+      (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    
+    console.log(`✅ Dashboard: Latest viewing request for property ${propertyId}:`, sortedRequests[0]);
+    return sortedRequests[0];
+  };
+
+  // Handle viewing request actions (visual cue only)
+  const handleViewingAction = (action: any, data?: any) => {
+    // This is just a visual cue - no complex actions needed
+    // Actions could be implemented later if needed
+    console.log('🎬 Dashboard: Viewing action triggered:', { action, data });
+  };
+
   // Unsave handler for dashboard
   const handleToggleSave = async (propertyId: string) => {
     if (!user) return;
@@ -309,6 +340,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {activeProperties.map((property) => {
                       const conversation = getPropertyConversation(property.id);
+                      const latestViewingRequest = getLatestViewingRequest(property.id);
                       const isSaved = savedIds.includes(property.id);
                       return (
                         <SavedPropertyCard
@@ -326,6 +358,8 @@ export default function DashboardPage() {
                           hasUnreadMessages={hasUnreadMessages(property.id)}
                           unreadCount={getUnreadCount(property.id)}
                           conversationId={conversation?.id}
+                          viewingRequest={latestViewingRequest}
+                          onViewingAction={handleViewingAction}
                           onMessageClick={() => {
                             if (conversation) {
                               window.location.href = `/conversation/${conversation.id}`;

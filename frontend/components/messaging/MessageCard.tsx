@@ -30,12 +30,6 @@ export default function MessageCard({ conversation, userRole, otherUserName }: M
     ? viewing_requests.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
     : null;
 
-  // Debug: Log viewing request data
-  console.log('MessageCard - Conversation ID:', conversation.id);
-  console.log('MessageCard - All viewing requests:', viewing_requests);
-  console.log('MessageCard - Latest viewing request:', latest_viewing_request);
-  console.log('MessageCard - User role:', userRole);
-
   // Handle viewing request actions
   const handleViewingAction = (action: BadgeAction, data?: any) => {
     console.log('Viewing action:', action, data);

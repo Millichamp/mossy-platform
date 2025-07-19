@@ -7,13 +7,17 @@ const router = Router();
 // In production, you'd validate JWT tokens properly
 const requireAuth = (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
+  console.log('Auth header received:', authHeader);
+  
   if (!authHeader) {
+    console.log('No authorization header provided');
     return res.status(401).json({ error: 'Authorization required' });
   }
   
   // Extract user ID from Authorization header (Bearer token format)
   // For now, we'll expect the user ID directly for simplicity
   const userId = authHeader.replace('Bearer ', '');
+  console.log('Extracted user ID:', userId);
   req.userId = userId;
   next();
 };
@@ -146,11 +150,6 @@ router.get('/', requireAuth, async (req: any, res) => {
     if (error) {
       console.error('Database error:', error);
       return res.status(500).json({ error: error.message });
-    }
-
-    // Debug: Log the first conversation to see the data structure
-    if (data && data.length > 0) {
-      console.log('Sample conversation data:', JSON.stringify(data[0], null, 2));
     }
 
     res.json(data);

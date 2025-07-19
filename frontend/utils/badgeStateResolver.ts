@@ -50,26 +50,37 @@ export function formatViewingDate(dateString: string, timeString?: string): stri
   
   const viewingDateOnly = new Date(viewingDate.getFullYear(), viewingDate.getMonth(), viewingDate.getDate());
   
-  // Format time if provided
-  const timeDisplay = timeString ? ` ${timeString}` : '';
+  // Format time if provided - make it shorter
+  let timeDisplay = '';
+  if (timeString) {
+    // Convert 24h format to 12h format and make it shorter
+    const timeParts = timeString.split(':');
+    if (timeParts.length >= 2) {
+      const hours = parseInt(timeParts[0], 10);
+      const minutes = timeParts[1];
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+      timeDisplay = ` ${displayHours}:${minutes}${ampm}`;
+    } else {
+      timeDisplay = ` ${timeString}`;
+    }
+  }
   
   if (viewingDateOnly.getTime() === today.getTime()) {
     return `Today${timeDisplay}`;
   } else if (viewingDateOnly.getTime() === tomorrow.getTime()) {
     return `Tomorrow${timeDisplay}`;
   } else if (viewingDate.getTime() - now.getTime() < 7 * 24 * 60 * 60 * 1000) {
-    // Within a week - show day name
+    // Within a week - show day name (shorter format)
     return viewingDate.toLocaleDateString('en-GB', { 
       weekday: 'short', 
-      month: 'short', 
       day: 'numeric' 
     }) + timeDisplay;
   } else {
-    // Show full date
+    // Show shorter date format
     return viewingDate.toLocaleDateString('en-GB', { 
       month: 'short', 
-      day: 'numeric', 
-      year: viewingDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
+      day: 'numeric'
     }) + timeDisplay;
   }
 }
@@ -99,7 +110,7 @@ export function resolveViewingBadgeState(
     } else {
       return {
         variant: 'neutral',
-        text: 'No Viewing Requests',
+        text: 'No Requests',
         icon: Calendar,
         isActionable: false
       };
@@ -114,7 +125,7 @@ export function resolveViewingBadgeState(
       if (userRole === 'buyer') {
         return {
           variant: 'warning',
-          text: 'Viewing Request Sent',
+          text: 'Request Sent',
           icon: Clock,
           showDate: true,
           dateValue: preferred_date ? formatViewingDate(preferred_date, preferred_time) : undefined,
@@ -123,7 +134,7 @@ export function resolveViewingBadgeState(
       } else {
         return {
           variant: 'warning',
-          text: 'Viewing Request Pending',
+          text: 'Pending',
           icon: AlertCircle,
           showDate: true,
           dateValue: preferred_date ? formatViewingDate(preferred_date, preferred_time) : undefined,
@@ -165,7 +176,7 @@ export function resolveViewingBadgeState(
     case 'cancelled':
       return {
         variant: 'neutral',
-        text: 'Viewing Cancelled',
+        text: 'Cancelled',
         icon: XCircle,
         isActionable: false
       };
@@ -173,7 +184,7 @@ export function resolveViewingBadgeState(
     case 'completed':
       return {
         variant: 'neutral',
-        text: 'Viewing Completed',
+        text: 'Completed',
         icon: CheckCircle,
         isActionable: false
       };
@@ -181,7 +192,7 @@ export function resolveViewingBadgeState(
     case 'superseded':
       return {
         variant: 'neutral',
-        text: 'Request Superseded',
+        text: 'Superseded',
         icon: Clock,
         isActionable: false
       };

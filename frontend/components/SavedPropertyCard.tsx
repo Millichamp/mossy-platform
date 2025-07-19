@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { MessageCircle, Heart } from 'lucide-react';
+import ViewingRequestBadge from './badges/ViewingRequestBadge';
+import { ViewingRequestData, BadgeAction } from '../utils/badgeStateResolver';
 
 interface SavedPropertyCardProps {
   id: string;
@@ -17,6 +19,8 @@ interface SavedPropertyCardProps {
   unreadCount?: number;
   conversationId?: string;
   onMessageClick?: () => void;
+  viewingRequest?: ViewingRequestData | null;
+  onViewingAction?: (action: BadgeAction, data?: any) => void;
 }
 
 export default function SavedPropertyCard({
@@ -33,8 +37,17 @@ export default function SavedPropertyCard({
   hasUnreadMessages = false,
   unreadCount = 0,
   conversationId,
-  onMessageClick
+  onMessageClick,
+  viewingRequest = null,
+  onViewingAction
 }: SavedPropertyCardProps) {
+  // Debug: Log what viewing request data we're receiving
+  console.log(`🏠 SavedPropertyCard for ${title}:`, {
+    id,
+    viewingRequest,
+    conversationId,
+    hasViewingRequest: !!viewingRequest
+  });
   // Only use imageUrl if it's a valid, non-empty string and starts with http or /
   const validImageUrl =
     typeof imageUrl === 'string' && imageUrl.trim() &&
@@ -77,7 +90,20 @@ export default function SavedPropertyCard({
           {/* Enhanced gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {/* Action buttons */}
+          {/* Viewing Request Badge - Top Left */}
+          {viewingRequest && (
+            <div className="absolute top-3 left-3">
+              <ViewingRequestBadge
+                viewingRequest={viewingRequest}
+                userRole="buyer"
+                conversationId={conversationId || ''}
+                onAction={onViewingAction}
+                className="backdrop-blur-sm"
+              />
+            </div>
+          )}
+
+          {/* Action buttons - Top Right */}
           <div className="absolute top-3 right-3 flex space-x-2">
             {/* Message button */}
             <button

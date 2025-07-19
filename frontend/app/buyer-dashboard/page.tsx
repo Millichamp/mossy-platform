@@ -71,7 +71,8 @@ export default function BuyerDashboard() {
     
     const fetchConversations = async () => {
       try {
-        console.log('Fetching conversations for user:', user.id);
+        console.log('Fetching conversations for user:', user);
+        console.log('User ID being sent:', user.id);
         const response = await fetch(`http://localhost:4000/api/conversations?role=buyer`, {
           headers: {
             'Authorization': `Bearer ${user.id}`,
@@ -79,9 +80,25 @@ export default function BuyerDashboard() {
           }
         });
         
+        console.log('Response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
-          console.log('Conversations data:', data);
+          console.log('🗣️ Conversations data received:', data);
+          console.log('📊 Number of conversations:', data.length);
+          if (data.length > 0) {
+            console.log('📋 First conversation structure:', data[0]);
+            // Debug: Check if viewing_requests exist in conversations
+            data.forEach((conv: any, index: number) => {
+              console.log(`🔍 Conversation ${index} viewing_requests:`, {
+                id: conv.id,
+                property_id: conv.property_id,
+                has_viewing_requests: !!conv.viewing_requests,
+                viewing_requests_count: conv.viewing_requests?.length || 0,
+                viewing_requests_data: conv.viewing_requests
+              });
+            });
+          }
           setConversations(data);
           
           // Also fetch active properties based on conversations
@@ -185,6 +202,36 @@ export default function BuyerDashboard() {
     return conversations.find(conv => 
       conv.property_id === propertyId || conv.property?.id === propertyId
     );
+  };
+
+  // Get latest viewing request for a property
+  const getLatestViewingRequest = (propertyId: string) => {
+    console.log(`🔍 getLatestViewingRequest called for property ${propertyId}`);
+    const conversation = getPropertyConversation(propertyId);
+    console.log(`🔍 getLatestViewingRequest for property ${propertyId}:`, {
+      conversation: conversation,
+      viewing_requests: conversation?.viewing_requests,
+      viewing_requests_length: conversation?.viewing_requests?.length || 0
+    });
+    
+    if (!conversation?.viewing_requests || conversation.viewing_requests.length === 0) {
+      console.log(`❌ No viewing requests found for property ${propertyId}`);
+      return null;
+    }
+    
+    // Sort by created_at to get the latest viewing request
+    const sortedRequests = conversation.viewing_requests.sort(
+      (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    
+    console.log(`✅ Latest viewing request for property ${propertyId}:`, sortedRequests[0]);
+    return sortedRequests[0];
+  };
+
+  // Handle viewing request actions (visual cue only)
+  const handleViewingAction = (action: any, data?: any) => {
+    // This is just a visual cue - no complex actions needed
+    // Actions could be implemented later if needed
   };
 
   // Check if property has unread messages
@@ -433,6 +480,7 @@ export default function BuyerDashboard() {
                       {activeProperties.map((property) => {
                         const conversation = getPropertyConversation(property.id);
                         const isSaved = savedIds.includes(property.id);
+                        const latestViewingRequest = getLatestViewingRequest(property.id);
                         return (
                           <SavedPropertyCard
                             key={property.id}
@@ -449,6 +497,8 @@ export default function BuyerDashboard() {
                             hasUnreadMessages={hasUnreadMessages(property.id)}
                             unreadCount={getUnreadCount(property.id)}
                             conversationId={conversation?.id}
+                            viewingRequest={latestViewingRequest}
+                            onViewingAction={handleViewingAction}
                             onMessageClick={() => {
                               if (conversation) {
                                 window.location.href = `/conversation/${conversation.id}`;
@@ -500,6 +550,7 @@ export default function BuyerDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {savedProperties.map((property) => {
                         const conversation = getPropertyConversation(property.id);
+                        const latestViewingRequest = getLatestViewingRequest(property.id);
                         return (
                           <SavedPropertyCard
                             key={property.id}
@@ -516,6 +567,8 @@ export default function BuyerDashboard() {
                             hasUnreadMessages={hasUnreadMessages(property.id)}
                             unreadCount={getUnreadCount(property.id)}
                             conversationId={conversation?.id}
+                            viewingRequest={latestViewingRequest}
+                            onViewingAction={handleViewingAction}
                             onMessageClick={() => {
                               if (conversation) {
                                 window.location.href = `/conversation/${conversation.id}`;
